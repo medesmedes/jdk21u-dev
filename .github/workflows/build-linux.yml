@@ -143,9 +143,3 @@ jobs:
         with:
           platform: ${{ inputs.platform }}
           debug-suffix: '${{ matrix.suffix }}'
-
-trigger-release:
-  needs: build-linux-x64
-  uses: ./.github/workflows/release.yml
-  permissions:
-    contents: write
