@@ -144,14 +144,6 @@ jobs:
           platform: ${{ inputs.platform }}
           debug-suffix: '${{ matrix.suffix }}'
 
-      # Upload to GitHub's temporary cloud storage
-      - name: 'Upload bundles'
-        uses: ./.github/actions/upload-bundles
-        with:
-          platform: ${{ inputs.platform }}
-          debug-suffix: '${{ matrix.suffix }}'
-
-
   trigger-release:
     needs: build-linux
     uses: ./.github/workflows/release.yml
