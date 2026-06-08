@@ -27,6 +27,7 @@ package sun.awt.X11;
 
 import sun.awt.X11CustomCursor;
 import java.awt.*;
+import java.awt.image.PixelGrabber;
 
 /**
  * A class to encapsulate a custom image-based cursor.
@@ -74,11 +75,61 @@ public class XCustomCursor extends X11CustomCursor {
         return d;
     }
 
+    private boolean tryCreateARGBCursor(int width, int height,
+                                        int xHotSpot, int yHotSpot) {
+        int[] pixels = new int[width * height];
+        PixelGrabber pg = new PixelGrabber(image, 0, 0, width, height, pixels, 0, width);
+        try {
+            if (!pg.grabPixels()) {
+                return false;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+
+        // Pre-multiply XCursorImage pixels for ARGB.
+        for (int i = 0; i < pixels.length; i++) {
+            int argb = pixels[i];
+            int a = (argb >>> 24);
+            if (a == 0) {
+                pixels[i] = 0;
+            } else if (a != 0xff) {
+                int r = ((argb >> 16) & 0xff) * a / 255;
+                int g = ((argb >> 8) & 0xff) * a / 255;
+                int b = (argb & 0xff) * a / 255;
+                pixels[i] = (a << 24) | (r << 16) | (g << 8) | b;
+            }
+        }
+
+        XToolkit.awtLock();
+        try {
+            long display = XToolkit.getDisplay();
+            long nativeCursor = XlibWrapper.XcursorImageLoadCursor(
+                    display, pixels, width, height, xHotSpot, yHotSpot);
+            if (nativeCursor != 0) {
+                XGlobalCursorManager.setPData(this, nativeCursor);
+                return true;
+            }
+        } finally {
+            XToolkit.awtUnlock();
+        }
+        return false;
+    }
+
     protected void createCursor(byte[] xorMask, byte[] andMask,
                                 int width, int height,
                                 int fcolor, int bcolor,
                                 int xHotSpot, int yHotSpot)
     {
+        try {
+            if (tryCreateARGBCursor(width, height, xHotSpot, yHotSpot)) {
+                return;
+            }
+        } catch (Throwable t) {
+            // Fallthrough to default cursor logic
+        }
+
         XToolkit.awtLock();
         try {
             long display = XToolkit.getDisplay();

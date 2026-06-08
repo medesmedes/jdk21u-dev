@@ -401,6 +401,9 @@ static native String XSetLocaleModifiers(String modifier_list);
     */
    static native long XCreatePixmapCursor(long display, long source, long mask, long fore, long back, int x, int y);
 
+   static native boolean XcursorSupportsARGB(long display);
+
+   static native long XcursorImageLoadCursor(long display, int[] pixels, int width, int height, int xhot, int yhot);
 
     /*
          Status XQueryBestCursor(display, d, width, height,

@@ -2318,3 +2318,31 @@ Java_sun_awt_X11_XlibWrapper_SetBitmapShape
 
     (*env)->ReleaseIntArrayElements(env, bitmap, values, JNI_ABORT);
 }
+
+#include <X11/Xcursor/Xcursor.h>
+
+JNIEXPORT jboolean JNICALL
+Java_sun_awt_X11_XlibWrapper_XcursorSupportsARGB(JNIEnv *env, jclass cls,
+                                                  jlong display)
+{
+    return XcursorSupportsARGB((Display*)(uintptr_t)display)
+           ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jlong JNICALL
+Java_sun_awt_X11_XlibWrapper_XcursorImageLoadCursor(JNIEnv *env, jclass cls,
+    jlong display, jintArray jpixels,
+    jint width, jint height, jint xhot, jint yhot)
+{
+    XcursorImage *img = XcursorImageCreate((int)width, (int)height);
+    if (!img) return 0L;
+    img->xhot = (XcursorDim)xhot;
+    img->yhot = (XcursorDim)yhot;
+    jint *pixels = (*env)->GetIntArrayElements(env, jpixels, NULL);
+    memcpy(img->pixels, pixels,
+           (size_t)(width * height) * sizeof(XcursorPixel));
+    (*env)->ReleaseIntArrayElements(env, jpixels, pixels, JNI_ABORT);
+    Cursor cursor = XcursorImageLoadCursor((Display*)(uintptr_t)display, img);
+    XcursorImageDestroy(img);
+    return (jlong)cursor;
+}
