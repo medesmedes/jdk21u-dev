@@ -146,4 +146,4 @@ jobs:
 
   trigger-release:
     needs: build-linux
-    uses: ./.github/workflows/release.yml
+    uses: ./.github/actions/release
