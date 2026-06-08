@@ -1,0 +1,26 @@
+name: 'Publish Release Artifacts'
+
+on:
+  workflow_call: # Enables this file to be called by build-linux.yml
+
+jobs:
+  create-release:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write # Grants permission to create the release and upload files
+    steps:
+      - name: 'Download All Bundles'
+        uses: actions/download-artifact@v4
+        with:
+          path: fetched-artifacts
+
+      - name: 'Publish Release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: jdk21u-custom-cursor-${{ github.run_number }}
+          name: 'JDK 21u - Experimental ARGB Linux Cursor Support (Build #${{ github.run_number }})'
+          draft: false
+          prerelease: false
+          files: |
+            fetched-artifacts/bundles-*/**/*.tar.gz
+            fetched-artifacts/bundles-*/**/*.zip
