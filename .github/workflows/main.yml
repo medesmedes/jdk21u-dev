@@ -334,3 +334,10 @@ jobs:
       platform: windows-x64
       bootjdk-platform: windows-x64
       runs-on: windows-2022
+
+  trigger-release:
+    name: 'Publish Release'
+    needs: build-linux-x64
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
